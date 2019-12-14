@@ -29,9 +29,19 @@ class direction_idx(object):
 class moves_order(object):
     CCW_YAW = [face_idx.FRONT, face_idx.RIGHT, face_idx.BACK, face_idx.LEFT]
     UP_PITCH = [face_idx.FRONT, face_idx.TOP, face_idx.BACK, face_idx.BOTTOM]
+    CCW_ROLL = [face_idx.TOP, face_idx.RIGHT, face_idx.BOTTOM, face_idx.LEFT]
 
 
 class face_transformation_map(object):
+    """
+    How to transform the cube to yaw action.
+    """
+    ROLL = {
+        face_idx.LEFT: [direction_idx.CCW],
+        face_idx.BOTTOM: [direction_idx.CW, direction_idx.CW],
+        face_idx.RIGHT: [direction_idx.CW],
+    }
+
     PITCH = {
         (face_idx.FRONT, face_idx.TOP): 1,
         (face_idx.TOP, face_idx.BACK): -1,
