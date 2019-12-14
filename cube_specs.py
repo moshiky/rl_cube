@@ -43,16 +43,8 @@ class face_transformation_map(object):
     }
 
     PITCH = {
-        (face_idx.FRONT, face_idx.TOP): 1,
-        (face_idx.TOP, face_idx.BACK): -1,
-        (face_idx.BACK, face_idx.BOTTOM): -1,
-        (face_idx.BOTTOM, face_idx.FRONT): 1
+        face_idx.FRONT: [direction_idx.CCW],
+        face_idx.TOP: [direction_idx.CCW],
+        face_idx.BACK: [direction_idx.CW],
+        face_idx.BOTTOM: [direction_idx.CCW],
     }
-
-    @staticmethod
-    def get_transformation(trans_map, face_pair):
-        if face_pair in trans_map.keys():
-            return trans_map[face_pair]
-        elif face_pair[::-1] in trans_map.keys():
-            return trans_map[face_pair]
-        raise Exception('face pair not in map:', trans_map, 'pair:', face_pair)
