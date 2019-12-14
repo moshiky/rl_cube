@@ -20,6 +20,9 @@ class RubiksCube(object):
         for face_idx in range(self._cube_state.shape[0]):
             self._cube_state[face_idx] = face_idx
 
+    def get_cube(self):
+        return self._cube_state.copy()
+
     def yaw(self, row_idx, direction):
         """
         Rotation of horizontal row of Front face.
@@ -55,10 +58,10 @@ class RubiksCube(object):
         :return:
         """
         # perform yaw movement on the row
-        previous_face_row = self._cube_state[move_order[0], row_idx, :]
+        previous_face_row = self._cube_state[move_order[0], row_idx, :].copy()
         for move_idx in range(len(move_order)):
             target_face_idx = move_order[(move_idx + 1) % len(move_order)]
-            current_face_row = self._cube_state[target_face_idx, row_idx, :]
+            current_face_row = self._cube_state[target_face_idx, row_idx, :].copy()
             self._cube_state[target_face_idx, row_idx, :] = previous_face_row
             previous_face_row = current_face_row
 
@@ -124,7 +127,7 @@ class RubiksCube(object):
         self._yaw(column_idx, direction, move_order, rotation_faces, rotation_face_directions)
 
         # rotate the cube back to normal mode
-        for face_idx, rotations in cube_specs.face_transformation_map.ROLL.items():
+        for face_idx, rotations in cube_specs.face_transformation_map.PITCH.items():
             for rotation_direction in rotations:
                 self.rotate_face(face_idx, utils.swap_direction(rotation_direction))
 
