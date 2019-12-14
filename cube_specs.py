@@ -43,10 +43,10 @@ class face_transformation_map(object):
     }
 
     PITCH = {
-        (face_idx.FRONT, face_idx.TOP): 1,
-        (face_idx.TOP, face_idx.BACK): -1,
-        (face_idx.BACK, face_idx.BOTTOM): -1,
-        (face_idx.BOTTOM, face_idx.FRONT): 1
+        face_idx.FRONT: [direction_idx.CCW],
+        face_idx.TOP: [direction_idx.CCW],
+        face_idx.BACK: [direction_idx.CW],
+        face_idx.BOTTOM: [direction_idx.CCW],
     }
 
     @staticmethod

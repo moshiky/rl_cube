@@ -107,33 +107,26 @@ class RubiksCube(object):
         else:
             move_order = cube_specs.moves_order.UP_PITCH[::-1]
 
-        # get transformation map
-        trans_map = cube_specs.face_transformation_map.PITCH
+        # convert the move to yaw
+        for face_idx, rotations in cube_specs.face_transformation_map.PITCH.items():
+            for rotation_direction in rotations:
+                self.rotate_face(face_idx, rotation_direction)
 
-        # perform yaw movement on the row
-        previous_face_row = self._cube_state[move_order[0], :, column_idx]
-        for move_idx in range(len(move_order)):
-            target_face_idx = move_order[(move_idx + 1) % len(move_order)]
-            current_face_column = self._cube_state[target_face_idx, :, column_idx]
+        # translate direction from UP/DOWN to CW/CCW
+        if direction == cube_specs.direction_idx.UP:
+            direction = cube_specs.direction_idx.CW
+        else:
+            direction = cube_specs.direction_idx.CCW
 
-            face_transformation_direction = \
-                cube_specs.face_transformation_map.get_transformation(
-                    trans_map, (move_order[move_idx], target_face_idx)
-                )
+        # do yaw action
+        rotation_faces = [cube_specs.face_idx.LEFT, cube_specs.face_idx.RIGHT]
+        rotation_face_directions = [cube_specs.direction_idx.CW, cube_specs.direction_idx.CCW]
+        self._yaw(column_idx, direction, move_order, rotation_faces, rotation_face_directions)
 
-            self._cube_state[target_face_idx, :, column_idx] = previous_face_row[::face_transformation_direction]
-            previous_face_row = current_face_column
-
-        # rotate relevant face if rotating upper or lower rows
-        direction_map = {
-            cube_specs.direction_idx.UP: cube_specs.direction_idx.CCW,
-            cube_specs.direction_idx.DOWN: cube_specs.direction_idx.CW,
-        }
-        if column_idx in [0, self._edge_size - 1]:
-            face_rotation_direction = \
-                direction_map[direction] if column_idx == 0 else utils.swap_direction(direction_map[direction])
-            face_idx = cube_specs.face_idx.LEFT if column_idx == 0 else cube_specs.face_idx.RIGHT
-            self.rotate_face(face_idx, face_rotation_direction)
+        # rotate the cube back to normal mode
+        for face_idx, rotations in cube_specs.face_transformation_map.ROLL.items():
+            for rotation_direction in rotations:
+                self.rotate_face(face_idx, utils.swap_direction(rotation_direction))
 
     def roll(self, row_idx, direction):
         """
