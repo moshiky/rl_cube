@@ -1,5 +1,5 @@
 
-from cube_specs import direction_idx
+from cube_simulator.cube_specs import direction_idx
 
 
 def _swap_pair(original_direction, direction_pair):

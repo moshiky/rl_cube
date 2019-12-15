@@ -6,9 +6,8 @@ import copy
 
 import numpy as np
 
-import cube_specs
-import utils
-from rubiks_cube import RubiksCube
+from cube_simulator import utils, cube_specs
+from cube_simulator.rubiks_cube import RubiksCube
 
 
 def test_yaw():

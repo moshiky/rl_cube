@@ -1,8 +1,7 @@
 
 import numpy as np
 
-import cube_specs
-import utils
+from cube_simulator import utils, cube_specs
 
 
 class RubiksCube(object):
