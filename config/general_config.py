@@ -1,7 +1,13 @@
 
+class plot_confs(object):
+
+    max_intervals = 20
+
+
 class game(object):
 
     cube_edge_size = 3
+    num_scramble_moves = 10
 
 
 class train(object):
