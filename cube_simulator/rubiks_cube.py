@@ -190,3 +190,31 @@ class RubiksCube(object):
             move_func(idx, move_direction)
 
         return scrambling_moves
+
+    def is_solved(self):
+        """
+        Check whether or not the cube is solved.
+
+        :return: boolean.
+        """
+        # define colors bank
+        colors_bank = list(range(self._cube_state.shape[0]))
+
+        # search for matches
+        for face_arr in self._cube_state:
+            # get face colors
+            face_colors = list(set(face_arr.reshape(-1).tolist()))
+
+            # validate single value
+            if len(face_colors) != 1:
+                return False
+
+            # validate color not selected yet
+            if face_colors[0] not in colors_bank:
+                return False
+
+            # face is ok- remove color from colors bank
+            colors_bank.remove(face_colors[0])
+
+        # if got here- the cube is solved
+        return True
