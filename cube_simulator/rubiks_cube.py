@@ -162,3 +162,31 @@ class RubiksCube(object):
         for face_idx, rotations in cube_specs.face_transformation_map.ROLL.items():
             for rotation_direction in rotations:
                 self.rotate_face(face_idx, utils.swap_direction(rotation_direction))
+
+    def scramble(self, num_moves):
+        """
+        Perform random move set to scramble the cube.
+
+        :param num_moves: integer. number of moves to execute.
+        :return: selected moves information.
+        """
+        # define scrambling moves order
+        direction_map = {
+            self.roll: [cube_specs.direction_idx.CW, cube_specs.direction_idx.CCW],
+            self.pitch: [cube_specs.direction_idx.UP, cube_specs.direction_idx.DOWN],
+            self.yaw: [cube_specs.direction_idx.CW, cube_specs.direction_idx.CCW],
+        }
+
+        # randomize moves
+        selected_moves = np.random.choice(list(direction_map.keys()), size=num_moves)
+        scrambling_moves = [[
+            move_func,
+            np.random.randint(self._edge_size),
+            np.random.choice(direction_map[move_func])
+        ] for move_func in selected_moves]
+
+        # execute scrambling moves
+        for move_func, idx, move_direction in scrambling_moves:
+            move_func(idx, move_direction)
+
+        return scrambling_moves

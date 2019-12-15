@@ -92,23 +92,8 @@ def test_all():
     test_cube = RubiksCube(edge_size=edge_size)
     original_cube = copy.deepcopy(test_cube)
 
-    # define scrambling moves order
-    direction_map = {
-        test_cube.roll: [cube_specs.direction_idx.CW, cube_specs.direction_idx.CCW],
-        test_cube.pitch: [cube_specs.direction_idx.UP, cube_specs.direction_idx.DOWN],
-        test_cube.yaw: [cube_specs.direction_idx.CW, cube_specs.direction_idx.CCW],
-    }
-
-    selected_moves = np.random.choice(list(direction_map.keys()), size=100)
-    scrambling_moves = [[
-        move_func,
-        np.random.randint(edge_size),
-        np.random.choice(direction_map[move_func])
-    ] for move_func in selected_moves]
-
     # execute scrambling moves
-    for move_func, idx, move_direction in scrambling_moves:
-        move_func(idx, move_direction)
+    scrambling_moves = test_cube.scramble(num_moves=100)
 
     # execute reversed scrambling moves in reversed order
     for move_func, idx, move_direction in scrambling_moves[::-1]:
