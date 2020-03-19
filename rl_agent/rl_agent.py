@@ -11,5 +11,3 @@ class RLAgent(object):
         :param agent_logic: IAgentLogic instance.
         """
         self._agent_logic = agent_logic
-
-    def
