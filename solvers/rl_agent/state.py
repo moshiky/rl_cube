@@ -3,6 +3,7 @@ class State:
     """
     Represents single environment state.
     """
+
     def __init__(self, features, is_final):
         """
         Init environment state.

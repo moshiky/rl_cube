@@ -3,11 +3,12 @@ from solvers.rl_agent import consts
 
 class ActionType:
     """
-    Represents single environment action.
+    Represents single environment action type.
     """
+
     def __init__(self, action_name, values_type, action_values):
         """
-        Initiate action instance.
+        Initiate action type instance.
 
         :param action_name: string. the name of the action.
         :param values_type: one of ['categorical', 'continues'].
