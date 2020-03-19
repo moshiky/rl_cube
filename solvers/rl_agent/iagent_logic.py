@@ -29,11 +29,12 @@ class IAgentLogic(metaclass=ABC):
         raise NotImplementedError()
 
     @abstractmethod
-    def next_action(self, s_t0):
+    def next_action(self, s_t0, is_train_mode):
         """
         Returns action for given state, according to current logic.
 
         :param s_t0: current state.
+        :param is_train_mode: boolean.
         :return: action.
         """
         raise NotImplementedError()
