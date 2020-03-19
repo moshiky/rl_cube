@@ -16,8 +16,9 @@ class Action:
             action_cls.action_name, action_value
         )
 
-        # store to internal member
+        # store to internal members
         self.__action_value = action_value
+        self.__action_cls = action_cls
 
     @property
     def action_value(self):

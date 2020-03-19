@@ -21,3 +21,6 @@ class State:
     @property
     def is_final(self):
         return self.__is_final
+
+    def __repr__(self):
+        return str(self.__features)
