@@ -1,8 +1,8 @@
 
 import numpy as np
 
-from solvers.rl_agent import consts
-from solvers.rl_agent.action import Action
+from config import consts
+from framework.action import Action
 from solvers.rl_agent.iagent_logic import IAgentLogic
 
 

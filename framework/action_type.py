@@ -1,4 +1,4 @@
-from solvers.rl_agent import consts
+from config import consts
 
 
 class ActionType:
