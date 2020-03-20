@@ -1,8 +1,8 @@
 
-from abc import ABC, abstractmethod
+from abc import ABCMeta, abstractmethod
 
 
-class AgentLogicInterface(metaclass=ABC):
+class AgentLogicInterface(metaclass=ABCMeta):
     """
     Agent logic interface.
     """
