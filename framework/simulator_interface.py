@@ -1,3 +1,4 @@
+from typing import Tuple
 
 import numpy as np
 from abc import ABC, abstractmethod
@@ -21,7 +22,7 @@ class SimulatorInterface(metaclass=ABC):
         raise NotImplementedError()
 
     @abstractmethod
-    def act(self, action: Action) -> np.float64:
+    def act(self, action: Action) -> Tuple[State, float]:
         """
         Simulates the specified action and returns the reward signal.
         :return:
