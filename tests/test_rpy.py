@@ -4,8 +4,8 @@ Test basic movements- Roll, Pitch and Yaw.
 """
 import copy
 
-from simulators.cube_simulator import cube_specs, utils
-from simulators.cube_simulator.rubiks_cube import RubiksCube
+from simulators.rubiks_cube import cube_specs, utils
+from simulators.rubiks_cube.rubiks_cube import RubiksCube
 
 
 def test_yaw():
