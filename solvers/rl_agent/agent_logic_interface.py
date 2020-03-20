@@ -2,7 +2,7 @@
 from abc import ABC, abstractmethod
 
 
-class IAgentLogic(metaclass=ABC):
+class AgentLogicInterface(metaclass=ABC):
     """
     Agent logic interface.
     """

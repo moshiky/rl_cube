@@ -3,10 +3,10 @@ import numpy as np
 
 from config import consts
 from framework.action import Action
-from solvers.rl_agent.agent_logic_interface import IAgentLogic
+from solvers.rl_agent.agent_logic_interface import AgentLogicInterface
 
 
-class TabularQLearning(IAgentLogic):
+class TabularQLearning(AgentLogicInterface):
     """
     Implements Tabular Q Learning logic.
     """

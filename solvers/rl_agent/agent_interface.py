@@ -2,7 +2,7 @@
 from abc import ABC, abstractmethod
 
 
-class IAgent(metaclass=ABC):
+class AgentInterface(metaclass=ABC):
     """
     Agent interface.
     """

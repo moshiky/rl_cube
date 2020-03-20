@@ -1,10 +1,10 @@
 
 import numpy as np
 
-from solvers.rl_agent.agent_interface import IAgent
+from solvers.rl_agent.agent_interface import AgentInterface
 
 
-class Agent(IAgent):
+class Agent(AgentInterface):
     """
     This class represents an RL agent.
     Uses an IAgentLogic instance to learn.
