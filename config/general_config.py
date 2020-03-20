@@ -1,4 +1,16 @@
 
+class train_config:
+    num_epochs = 5
+    max_epoch_steps = 20
+
+
+class eval_config:
+    num_epochs = 20
+    max_epoch_steps = 20
+
+
+# ==================
+
 class plot_confs(object):
 
     max_intervals = 20

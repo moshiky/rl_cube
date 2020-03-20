@@ -45,8 +45,7 @@ class TabularQLearning(AgentLogicInterface):
         Interface method implementation.
         """
         # get current state q value
-        s_t0_key = str(s_t0)
-        s_t0_q_value = self.__q_table[s_t0_key][a]
+        s_t0_q_value = self._get_state_arr(s_t0)[a.action_value]
 
         # get next best action q value
         best_next_action_q_value = self._get_best_action_value(s_t1)[1]
@@ -55,7 +54,7 @@ class TabularQLearning(AgentLogicInterface):
         new_s_t0_q_value = s_t0_q_value + self.__alpha * (r + self.__gamma * best_next_action_q_value - s_t0_q_value)
 
         # set new q value
-        self.__q_table[s_t0_key][a] = new_s_t0_q_value
+        self._set_q_value(s_t0, a, new_s_t0_q_value)
 
     def next_action(self, s_t, is_train_mode):
         """
@@ -79,16 +78,9 @@ class TabularQLearning(AgentLogicInterface):
         :param s_t: state.
         :return: best action for given state, and q value for the specified action.
         """
-        # verify state in table
-        action_values = self.__action_type.action_values
-        state_key = str(s_t)
-        if state_key not in self.__q_table.keys():
-            self.__q_table[state_key] = {
-                action_value: 0.0 for action_value in action_values
-            }
-
         # get q values for each of state actions
-        action_q_values = self.__q_table[str(s_t)]
+        action_values = self.__action_type.action_values
+        action_q_values = self._get_state_arr(s_t)
 
         # get best q value
         best_q = max(action_q_values.values())
@@ -98,3 +90,35 @@ class TabularQLearning(AgentLogicInterface):
 
         # select random action value among best ones
         return np.random.choice(best_action_values), best_q
+
+    def _get_state_arr(self, s_t):
+        """
+        Returns state's q value for each action.
+        :param s_t: State instance
+        :return: dict.
+        """
+        # validate state is in the q table
+        action_values = self.__action_type.action_values
+        state_key = str(s_t)
+        if state_key not in self.__q_table.keys():
+            self.__q_table[state_key] = {
+                action_value: 0.0 for action_value in action_values
+            }
+
+        return self.__q_table[state_key]
+
+    def _set_q_value(self, s_t, a, q_val):
+        """
+        Set the q value for the specified pair.
+
+        :param s_t: State instance
+        :param a: Action instance
+        :param q_val: float
+        :return:
+        """
+        # validate state is in the q table
+        self._get_state_arr(s_t)
+
+        # set the value
+        state_key = str(s_t)
+        self.__q_table[state_key][a.action_value] = q_val

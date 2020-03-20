@@ -1,3 +1,5 @@
+import copy
+
 
 class State:
     """
@@ -11,7 +13,7 @@ class State:
         :param features: object. state features. can be of any serializable format.
         :param is_final: boolean. whether or not the represented state is final state.
         """
-        self.__features = features
+        self.__features = copy.deepcopy(features)
         self.__is_final = is_final
 
     @property

@@ -207,6 +207,11 @@ class Simulator(SimulatorInterface):
         for pole_idx in range(Simulator.NUM_POLES):
             pole_txt_str_arr = ['-'] * pole_str_width
             pole_txt_str_arr[self.__num_floors] = str(pole_idx)
+
+            if pole_idx == self.__start_pole:
+                pole_txt_str_arr[self.__num_floors - 1] = '['
+                pole_txt_str_arr[self.__num_floors + 1] = ']'
+
             output_str += ''.join(pole_txt_str_arr)
 
         print(output_str)

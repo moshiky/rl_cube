@@ -53,7 +53,9 @@ class Agent(AgentInterface):
         for epoch_idx in range(num_epochs):
 
             # reset environment state
+            # print('$$ ----- new epoch!')
             s_t = env.reset()
+            # env.visualize()
 
             # act and learn until epoch end- final state or max epoch steps
             epoch_steps = 0
@@ -65,6 +67,8 @@ class Agent(AgentInterface):
                 # act in environment
                 s_next, r_t = env.act(a_t)
                 total_reward += r_t
+
+                # env.visualize()
 
                 # in train mode- update logic
                 if is_train_mode:
