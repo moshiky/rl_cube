@@ -1,14 +1,14 @@
 from typing import Tuple
 
 import numpy as np
-from abc import ABC, abstractmethod
+from abc import ABCMeta, abstractmethod
 
 from framework.action import Action
 from framework.action_type import ActionType
 from framework.state import State
 
 
-class SimulatorInterface(metaclass=ABC):
+class SimulatorInterface(metaclass=ABCMeta):
     """
     Environment simulator interface.
     """

@@ -15,12 +15,13 @@ class Simulator(SimulatorInterface):
     """
     NUM_POLES = 3
 
-    def __init__(self, num_floors: int):
+    def __init__(self, num_floors: int, verbose: bool = False):
         """
         Initiates the environment simulator according to specified configuration.
         NOTICE: in order to start use the simulator, the method reset must be called manually.
 
         :param num_floors: positive integer. number of floors.
+        :param verbose: whether or not to print actions description.
         """
         # verify input
         assert num_floors > 0, 'num floors must be positive number.'
@@ -31,6 +32,7 @@ class Simulator(SimulatorInterface):
         # prepare members
         self.__state = None
         self.__start_pole = None
+        self.__verbose = verbose
 
         assert Simulator.NUM_POLES == 3, 'currently only 3 poles are supported'
         self.__action_type = ActionType(
@@ -45,6 +47,10 @@ class Simulator(SimulatorInterface):
                 5   # pole[2] -> pole[1]
             ]
         )
+
+    def __log(self, msg):
+        if self.__verbose:
+            print(msg)
 
     def reset(self) -> State:
         """
@@ -79,6 +85,8 @@ class Simulator(SimulatorInterface):
         order_idx = action.action_value - source_pole * 2
         target_pole = sorted({0, 1, 2} - {source_pole})[order_idx]
 
+        self.__log('action: pole[{}] -> pole[{}]'.format(source_pole, target_pole))
+
         # execute action and return new state and reward
         return self.__transfer(source_pole, target_pole)
 
@@ -100,6 +108,7 @@ class Simulator(SimulatorInterface):
         # get floor to move
         source_pole_arr = self.__get_pole_arr(source_pole_idx)
         if (source_pole_arr == 0).all():
+            self.__log('game over! source pole all zeros')
             return State(self.__state, is_final=True), -1
 
         source_floor_idx = np.where(source_pole_arr > 0)[0][0]
@@ -111,7 +120,9 @@ class Simulator(SimulatorInterface):
             highest_target_floor_idx = np.where(target_pole_arr > 0)[0][0]
             highest_target_floor = target_pole_arr[highest_target_floor_idx]
 
-            if highest_target_floor > floor_to_move:
+            if highest_target_floor < floor_to_move:
+                self.__log('game over! highest top floor is smaller than floor to move: {} < {}'.format(
+                    highest_target_floor, floor_to_move))
                 return State(self.__state, is_final=True), -1
 
             target_slot_idx = highest_target_floor_idx - 1
@@ -125,6 +136,8 @@ class Simulator(SimulatorInterface):
 
         # check whether or not this is a final state
         is_final_state = self.__is_final_state()
+        if is_final_state:
+            self.__log('Win!')
 
         # calculate reward
         reward = 1 if is_final_state else 0
@@ -138,7 +151,7 @@ class Simulator(SimulatorInterface):
         :return:
         """
         # iterate relevant poles
-        valid_pole = np.arange(self.__num_floors)
+        valid_pole = np.arange(self.__num_floors) + 1
         for pole_idx in list(set(range(Simulator.NUM_POLES)) - {self.__start_pole}):
             pole_arr = self.__get_pole_arr(pole_idx)
             if (pole_arr == valid_pole).all():
@@ -191,5 +204,9 @@ class Simulator(SimulatorInterface):
 
             output_str += '\n'
 
-        output_str += '-' * pole_str_width * Simulator.NUM_POLES
+        for pole_idx in range(Simulator.NUM_POLES):
+            pole_txt_str_arr = ['-'] * pole_str_width
+            pole_txt_str_arr[self.__num_floors] = str(pole_idx)
+            output_str += ''.join(pole_txt_str_arr)
+
         print(output_str)
