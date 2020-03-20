@@ -2,7 +2,7 @@
 import numpy as np
 
 from config import general_config
-from cube_simulator.rubiks_cube import RubiksCube
+from simulators.cube_simulator.rubiks_cube import RubiksCube
 from framework.plot_manager import PlotManager
 
 
