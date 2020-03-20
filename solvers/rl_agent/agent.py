@@ -1,7 +1,7 @@
 
 import numpy as np
 
-from solvers.rl_agent.iagent import IAgent
+from solvers.rl_agent.agent_interface import IAgent
 
 
 class Agent(IAgent):

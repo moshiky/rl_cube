@@ -3,7 +3,7 @@ import numpy as np
 
 from config import consts
 from framework.action import Action
-from solvers.rl_agent.iagent_logic import IAgentLogic
+from solvers.rl_agent.agent_logic_interface import IAgentLogic
 
 
 class TabularQLearning(IAgentLogic):
