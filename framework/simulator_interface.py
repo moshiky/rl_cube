@@ -42,3 +42,11 @@ class SimulatorInterface(metaclass=ABC):
         Returns action type configuration.
         """
         raise NotImplementedError()
+
+    @abstractmethod
+    def visualize(self):
+        """
+        Produce environment visualization.
+        :return:
+        """
+        raise NotImplementedError()
