@@ -98,11 +98,10 @@ class TabularQLearning(AgentLogicInterface):
         :return: dict.
         """
         # validate state is in the q table
-        action_values = self.__action_type.action_values
         state_key = str(s_t)
         if state_key not in self.__q_table.keys():
             self.__q_table[state_key] = {
-                action_value: 0.0 for action_value in action_values
+                action_value: 0.0 for action_value in self.__action_type.action_values
             }
 
         return self.__q_table[state_key]
