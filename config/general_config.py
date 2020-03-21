@@ -1,6 +1,6 @@
 
 class train_config:
-    num_epochs = 5
+    num_epochs = 10
     max_epoch_steps = 20
 
 
