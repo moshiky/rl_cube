@@ -7,7 +7,7 @@ from solvers.rl_agent.logics.tabular_q_learning import TabularQLearning
 
 def main():
     # create environment
-    env = Simulator(num_floors=3, verbose=False)
+    env = Simulator(num_floors=5, verbose=False)
 
     # create agent logic
     agent_logic = TabularQLearning(
@@ -24,7 +24,7 @@ def main():
     )
 
     # iterate train and eval
-    for train_iter_idx in range(150):
+    for train_iter_idx in range(10000):
         print('== train iteration #{}'.format(train_iter_idx))
 
         epoch_history = agent.train(
@@ -38,6 +38,9 @@ def main():
             eval_config=general_config.eval_config
         )
         print('> eval scores: {:.4f} [{:.4f}]'.format(mean, std))
+
+        if mean == 1:
+            break
 
 
 if __name__ == '__main__':
