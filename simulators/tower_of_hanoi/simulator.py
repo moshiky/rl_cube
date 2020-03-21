@@ -52,7 +52,7 @@ class Simulator(SimulatorInterface):
         if self.__verbose:
             print(msg)
 
-    def reset(self) -> State:
+    def reset(self, verbose=None) -> State:
         """
         Interface method implementation.
         """
@@ -66,6 +66,10 @@ class Simulator(SimulatorInterface):
         # place the floors on the selected start pole
         start_idx = self.__start_pole * self.__num_floors
         self.__state[start_idx:start_idx + self.__num_floors] = np.arange(self.__num_floors) + 1
+
+        # reset verbose mode
+        if verbose is not None:
+            self.__verbose = verbose
 
         # wrap with state and return
         return State(self.__state, False)
