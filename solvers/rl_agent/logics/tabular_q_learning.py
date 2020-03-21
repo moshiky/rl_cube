@@ -11,7 +11,7 @@ class TabularQLearning(AgentLogicInterface):
     Implements Tabular Q Learning logic.
     """
 
-    def __init__(self, action_type, epsilon, alpha, gamma):
+    def __init__(self, action_type, epsilon, alpha, gamma, rs_logic=None, similarity_logic=None):
         """
         Initiate logic instance.
 
@@ -19,6 +19,10 @@ class TabularQLearning(AgentLogicInterface):
         :param epsilon: float. exploration rate parameter.
         :param alpha: float. learning rate.
         :param gamma: float. horizon scaling parameter.
+        :param rs_logic: reward shaping logic to apply.
+            prototype: func(s_t, a_t, s_t1) -> float
+        :param similarity_logic: similarity logic to apply.
+            prototype: func(State, Action) -> list[(State, Action, float)]
         """
         # verify configuration
         assert action_type.values_type == consts.ActionTypeConsts.CATEGORICAL_VALUES_TYPE, \
@@ -29,6 +33,8 @@ class TabularQLearning(AgentLogicInterface):
         self.__epsilon = epsilon
         self.__alpha = alpha
         self.__gamma = gamma
+        self.__rs_logic = rs_logic
+        self.__similarity_logic = similarity_logic
 
         # initiate q table
         self.__q_table = dict()
@@ -44,6 +50,10 @@ class TabularQLearning(AgentLogicInterface):
         """
         Interface method implementation.
         """
+        # apply reward shaping logic
+        if self.__rs_logic is not None:
+            r += self.__rs_logic(s_t0, a, s_t1)
+
         # get current state q value
         s_t0_q_value = self._get_state_arr(s_t0)[a.action_value]
 
