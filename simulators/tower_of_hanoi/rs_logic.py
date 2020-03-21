@@ -3,6 +3,7 @@ import numpy as np
 
 from framework.action import Action
 from framework.state import State
+from simulators.tower_of_hanoi.simulator import Simulator
 
 
 def get_shaping_signal(s_t0: State, a_t: Action, s_t1: State) -> float:
@@ -17,10 +18,20 @@ def get_shaping_signal(s_t0: State, a_t: Action, s_t1: State) -> float:
     :param s_t1: State. target state.
     :return: float- the shaping signal.
     """
-    return phi(s_t1) - phi(s_t0)
+    return _phi(s_t1) - _phi(s_t0)
 
 
-def phi(s_t: State) -> float:
+def _pole_idx_from_floor_idx(floor_idx: int) -> int:
+    """
+    Calculates pole idx from a floor idx.
+
+    :param floor_idx: int. the index of a floor in the state array.
+    :return: int. the index of the pole that the floor is on.
+    """
+    return floor_idx // Simulator.NUM_POLES
+
+
+def _phi(s_t: State) -> float:
     """
     Calculates the potential value of a state.
 
@@ -32,7 +43,7 @@ def phi(s_t: State) -> float:
     start_pole_idx = s_t.features[-1]
 
     largest_floor_size = pole_features.max()
-    target_pole_idx = np.where(pole_features == largest_floor_size)[0][0]
+    target_pole_idx = _pole_idx_from_floor_idx(np.where(pole_features == largest_floor_size)[0][0])
     if target_pole_idx == start_pole_idx:
         return 0
 
@@ -40,7 +51,7 @@ def phi(s_t: State) -> float:
     total_correct = 1
     next_to_find = largest_floor_size - 1
     while next_to_find > 0:
-        next_pole_idx = np.where(pole_features == next_to_find)[0][0]
+        next_pole_idx = _pole_idx_from_floor_idx(np.where(pole_features == next_to_find)[0][0])
         if next_pole_idx != target_pole_idx:
             break
 
