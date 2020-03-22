@@ -1,5 +1,6 @@
 from config import general_config
 from simulators.tower_of_hanoi.rs_logic import get_shaping_signal
+from simulators.tower_of_hanoi.similarity_logic import get_similarity_group
 from simulators.tower_of_hanoi.simulator import Simulator
 from solvers.rl_agent.agent import Agent
 from solvers.rl_agent.logics.tabular_q_learning import TabularQLearning
@@ -15,7 +16,8 @@ def main():
         epsilon=0.05,
         alpha=0.1,
         gamma=0.999,
-        rs_logic=get_shaping_signal
+        rs_logic=get_shaping_signal,
+        similarity_logic=get_similarity_group
     )
 
     # create agent

@@ -54,17 +54,26 @@ class TabularQLearning(AgentLogicInterface):
         if self.__rs_logic is not None:
             r += self.__rs_logic(s_t0, a, s_t1)
 
+        # get similarity group
+        similarity_group = [(s_t0, a, 1.0)]
+        if self.__similarity_logic is not None:
+            similarity_group += self.__similarity_logic(s_t0, a)
+
         # get current state q value
         s_t0_q_value = self._get_state_arr(s_t0)[a.action_value]
 
         # get next best action q value
         best_next_action_q_value = self._get_best_action_value(s_t1)[1]
 
-        # calculate new q value for s_t0
-        new_s_t0_q_value = s_t0_q_value + self.__alpha * (r + self.__gamma * best_next_action_q_value - s_t0_q_value)
+        # calculate update value
+        update_value = self.__alpha * (r + self.__gamma * best_next_action_q_value - s_t0_q_value)
 
-        # set new q value
-        self._set_q_value(s_t0, a, new_s_t0_q_value)
+        # iterate all pairs in similarity group and update the q value
+        for s_x, a_x, sm_rate in similarity_group:
+            s_x_q_value = self._get_state_arr(s_x)[a_x.action_value]
+            self._set_q_value(s_x, a_x, s_x_q_value + sm_rate * update_value)
+
+        return r
 
     def next_action(self, s_t, is_train_mode):
         """

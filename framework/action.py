@@ -23,3 +23,7 @@ class Action:
     @property
     def action_value(self):
         return self.__action_value
+
+    @property
+    def action_cls(self):
+        return self.__action_cls
