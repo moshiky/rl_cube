@@ -26,24 +26,25 @@ class Agent(AgentInterface):
         max_epoch_steps = train_config.max_epoch_steps
         return self._run_epochs(env, num_epochs, max_epoch_steps, is_train_mode=True)
 
-    def eval(self, env, eval_config, **kwargs):
+    def eval(self, env, eval_config, verbose=False):
         """
         Interface method implementation.
         """
         # execute required number of epochs in eval mode
         num_epochs = eval_config.num_epochs
         max_epoch_steps = eval_config.max_epoch_steps
-        epoch_reward = self._run_epochs(env, num_epochs, max_epoch_steps, is_train_mode=False)
+        epoch_reward = self._run_epochs(env, num_epochs, max_epoch_steps, is_train_mode=False, verbose=verbose)
 
         return epoch_reward.mean(), epoch_reward.std()
 
-    def _run_epochs(self, env, num_epochs, max_epoch_steps, is_train_mode):
+    def _run_epochs(self, env, num_epochs, max_epoch_steps, is_train_mode, verbose=False):
         """
         Execute multiple epoch and return rewards total for each epoch.
 
         :param env: Environment to act in
         :param max_epoch_steps: integer. max steps for epoch.
         :param is_train_mode: boolean.
+        :param verbose: boolean.
         :return: np.ndarray- rewards total for each epoch.
         """
         # prepare output
@@ -53,9 +54,9 @@ class Agent(AgentInterface):
         for epoch_idx in range(num_epochs):
 
             # reset environment state
-            # print('$$ ----- new epoch!')
-            s_t = env.reset()
-            # env.visualize()
+            if verbose: print('$$ ----- new epoch!')
+            s_t = env.reset(verbose=verbose)
+            if verbose: env.visualize()
 
             # act and learn until epoch end- final state or max epoch steps
             epoch_steps = 0
@@ -66,13 +67,14 @@ class Agent(AgentInterface):
 
                 # act in environment
                 s_next, r_t = env.act(a_t)
-                total_reward += r_t
 
-                # env.visualize()
+                if verbose: env.visualize()
 
                 # in train mode- update logic
                 if is_train_mode:
-                    self.__agent_logic.update(s_t, a_t, r_t, s_next)
+                    r_t = self.__agent_logic.update(s_t, a_t, r_t, s_next)
+
+                total_reward += r_t
 
                 # prepare for next iteration
                 s_t = s_next

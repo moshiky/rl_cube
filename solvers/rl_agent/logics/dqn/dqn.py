@@ -1,5 +1,6 @@
-
+import os
 import numpy as np
+import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
@@ -13,7 +14,7 @@ class DQN(AgentLogicInterface):
     Implements Deep Q-Learning algorithm.
     """
 
-    def __init__(self, state_feature_specs, action_type, rs_logic=None, similarity_logic=None):
+    def __init__(self, state_feature_specs, action_type, train_dir_path, rs_logic=None, similarity_logic=None):
         """
         Initiate logic instance.
 
@@ -22,6 +23,7 @@ class DQN(AgentLogicInterface):
             if ki >= 2 - categorical feature with k classes
             otherwise- error!
         :param action_type: instances of ActionType.
+        :param train_dir_path: string. path to dir to store the checkpoint files.
         :param rs_logic: reward shaping logic to apply.
             prototype: func(s_t, a_t, s_t1) -> float
         :param similarity_logic: similarity logic to apply.
@@ -37,48 +39,26 @@ class DQN(AgentLogicInterface):
         # store configuration
         self.__state_feature_specs = state_feature_specs
         self.__action_type = action_type
+        self.__train_dir_path = train_dir_path
         self.__rs_logic = rs_logic
         self.__similarity_logic = similarity_logic
+        self.__step_idx = 0
 
-        # initiate q network
+        if not os.path.exists(self.__train_dir_path):
+            os.makedirs(self.__train_dir_path)
+
+        # initiate q network members
+        self.__memory = list()
+
         self.__q_net = self.__construct_network()
+        self.__target_net = self._store_q_net_and_load()
 
     def __construct_network(self) -> nn.Module:
         """
         Construct and return internal q network according to configuration.
         :return: nn.Module
         """
-        # prepare output structure
-        nn_layers = list()
 
-        # construct nn hidden layers
-        next_input_size = sum(self.__state_feature_specs)
-        for layer_size in logics_config.dqn.layers:
-            next_layer = nn.Linear(
-                in_features=next_input_size,
-                out_features=layer_size,
-                bias=True
-            )
-            next_input_size = layer_size
-            nn_layers.append(next_layer)
-
-            nn_layers.append(nn.BatchNorm1d(next_input_size))
-            nn_layers.append(nn.ReLU())
-            if logics_config.dqn.dropout_rate > 0:
-                nn_layers.append(nn.Dropout(logics_config.dqn.dropout_rate))
-
-        # add final layer
-        num_actions = len(self.__action_type.action_values)
-        next_layer = nn.Linear(
-            in_features=next_input_size,
-            out_features=num_actions,
-            bias=True
-        )
-        nn_layers.append(next_layer)
-        nn_layers.append(nn.Softmax())
-
-        # convert to sequential model and return
-        return nn.Sequential(*nn_layers)
 
     def new_epoch(self):
         """
@@ -90,10 +70,41 @@ class DQN(AgentLogicInterface):
         """
         Interface method implementation.
         """
-        pass
+        # store experience to memory
+        self.__memory.append((s_t0, a, r, s_t1))
+        if len(self.__memory) > logics_config.dqn.memory_size:
+            self.__memory = self.__memory[1:]
+
+        # create train batch
+        if len(self.__memory) >= logics_config.dqn.batch_size:
+
+            # select samples for batch
+            batch_sample_idxs = np.random.randint(len(self.__memory))
+            batch_samples = np.array(self.__memory, dtype=object)[batch_sample_idxs]
+
+            # construct input
+            input_vecs = list()
+            for sample in batch_samples:
+                in_vec, out_vec = self._produce_sample_vecs(sample)
+
+            # increase step idx
+            self.__step_idx += 1
 
     def next_action(self, s_t, is_train_mode):
         """
         Interface method implementation.
         """
         pass
+
+    def _store_q_net_and_load(self) -> nn.Module:
+        """
+        Store current q net to disk and load into target net.
+
+        :return: nn.Module.
+        """
+        # store q net to disk
+        ckpt_file_path = os.path.join(self.__train_dir_path, 'model__step_{}.pt'.format(self.__step_idx))
+        torch.save(self.__q_net, ckpt_file_path)
+
+        # load saved model and return
+        return torch.load(ckpt_file_path)

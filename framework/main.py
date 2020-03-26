@@ -33,11 +33,12 @@ def main():
             env=env,
             train_config=general_config.train_config
         )
-        print('> train scores: {}'.format(epoch_history))
+        print('> train scores: {:.4f} [{}]'.format(epoch_history.mean(), epoch_history))
 
         mean, std = agent.eval(
             env=env,
-            eval_config=general_config.eval_config
+            eval_config=general_config.eval_config,
+            verbose=False
         )
         print('> eval scores: {:.4f} [{:.4f}]'.format(mean, std))
 
