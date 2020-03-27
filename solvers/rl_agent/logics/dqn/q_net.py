@@ -61,6 +61,7 @@ class QNet(nn.Module):
 
         # convert to sequential model and store
         self.__model = nn.Sequential(*nn_layers)
+        self.__model.train()
 
     @staticmethod
     def _one_hot_encode(class_idx: int, num_classes: int):

@@ -7,6 +7,7 @@ import torch.nn.functional as F
 from config import consts
 from solvers.rl_agent.agent_logic_interface import AgentLogicInterface
 from solvers.rl_agent.logics import logics_config
+from solvers.rl_agent.logics.dqn.q_net import QNet
 
 
 class DQN(AgentLogicInterface):
@@ -50,15 +51,19 @@ class DQN(AgentLogicInterface):
         # initiate q network members
         self.__memory = list()
 
-        self.__q_net = self.__construct_network()
-        self.__target_net = self._store_q_net_and_load()
+        self.__q_net = QNet(
+            state_feature_specs=self.__state_feature_specs,
+            num_actions=len(self.__action_type.action_values),
+            layers=logics_config.dqn.layers,
+            dropout_rate=logics_config.dqn.dropout_rate
+        )
+        self.__target_net = None
 
-    def __construct_network(self) -> nn.Module:
-        """
-        Construct and return internal q network according to configuration.
-        :return: nn.Module
-        """
-
+        # define optimizer
+        self.__optimizer = torch.optim.Adam(
+            params=self.__q_net.parameters(),
+            lr=logics_config.dqn.lr
+        )
 
     def new_epoch(self):
         """
@@ -75,17 +80,38 @@ class DQN(AgentLogicInterface):
         if len(self.__memory) > logics_config.dqn.memory_size:
             self.__memory = self.__memory[1:]
 
+        # update target network in intervals
+        if self.__step_idx % logics_config.dqn.target_update_interval == 0:
+            self.__target_net = self._store_q_net_and_load()
+
         # create train batch
-        if len(self.__memory) >= logics_config.dqn.batch_size:
+        batch_size = logics_config.dqn.batch_size
+        if len(self.__memory) >= batch_size:
 
             # select samples for batch
             batch_sample_idxs = np.random.randint(len(self.__memory))
             batch_samples = np.array(self.__memory, dtype=object)[batch_sample_idxs]
 
-            # construct input
-            input_vecs = list()
-            for sample in batch_samples:
-                in_vec, out_vec = self._produce_sample_vecs(sample)
+            # extract batch elements
+            s_t0_batch = [x[0] for x in batch_samples]
+            a_batch = [int(x[1].action_value) for x in batch_samples]
+            r_batch = [x[2] for x in batch_samples]
+            s_t1_batch = [x[3] for x in batch_samples]
+
+            # get q(s_t0, a) for the batch
+            s_t0_q_net_outputs = self.__q_net(s_t0_batch)
+            y_hat_values = s_t0_q_net_outputs[range(batch_size), a_batch]
+
+            # get target values
+            s_t1_q_net_outputs = self.__target_net(s_t1_batch)
+            best_a_values = s_t1_q_net_outputs.max(dim=1)
+            y_values = torch.from_numpy(np.array(r_batch)) + logics_config.common.gamma * best_a_values
+
+            # calculate loss and perform back-propagation
+            loss = F.mse_loss(y_hat_values, y_values)
+            loss.backward()
+            self.__optimizer.step()
+            self.__optimizer.zero_grad()
 
             # increase step idx
             self.__step_idx += 1
@@ -94,7 +120,19 @@ class DQN(AgentLogicInterface):
         """
         Interface method implementation.
         """
-        pass
+        # check which mode it is and apply epsilon-greedy policy
+        if is_train_mode and np.random.rand() < logics_config.common.epsilon:
+            # select random action
+            selected_value = np.random.choice(self.__action_type.action_values)
+
+        else:
+            # select best action value
+            s_t_q_net_output = self.__target_net([s_t])[0]
+            best_q_value = s_t_q_net_output.max()
+            best_a_idxs = np.where(s_t_q_net_output == best_q_value)[0].tolist()
+            selected_value = np.random.choice(best_a_idxs)
+
+        return selected_value
 
     def _store_q_net_and_load(self) -> nn.Module:
         """
@@ -107,4 +145,6 @@ class DQN(AgentLogicInterface):
         torch.save(self.__q_net, ckpt_file_path)
 
         # load saved model and return
-        return torch.load(ckpt_file_path)
+        loaded_model = torch.load(ckpt_file_path)
+        loaded_model.eval()
+        return loaded_model

@@ -1,6 +1,7 @@
 
 class common:
     epsilon = 0.05
+    gamma = 0.99
 
 
 class dqn:
