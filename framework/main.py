@@ -3,7 +3,8 @@ from simulators.tower_of_hanoi.rs_logic import get_shaping_signal
 from simulators.tower_of_hanoi.similarity_logic import get_similarity_group
 from simulators.tower_of_hanoi.simulator import Simulator
 from solvers.rl_agent.agent import Agent
-from solvers.rl_agent.logics.tabular_q_learning import TabularQLearning
+# from solvers.rl_agent.logics.tabular_q_learning.tabular_q_learning import TabularQLearning
+from solvers.rl_agent.logics.dqn.dqn import DQN
 
 
 def main():
@@ -11,13 +12,18 @@ def main():
     env = Simulator(num_floors=5, verbose=False)
 
     # create agent logic
-    agent_logic = TabularQLearning(
+    # agent_logic = TabularQLearning(
+    #     action_type=env.get_actions(),
+    #     epsilon=0.05,
+    #     alpha=0.1,
+    #     gamma=0.999,
+    #     rs_logic=get_shaping_signal,
+    #     similarity_logic=get_similarity_group
+    # )
+    agent_logic = DQN(
+        state_feature_specs=env.get_state_feature_specs(),
         action_type=env.get_actions(),
-        epsilon=0.05,
-        alpha=0.1,
-        gamma=0.999,
-        rs_logic=get_shaping_signal,
-        similarity_logic=get_similarity_group
+        train_dir_path=r'c:/files/train_dir/dqn_01'
     )
 
     # create agent

@@ -6,7 +6,7 @@ class common:
 
 class dqn:
 
-    lr = 0.1
+    lr = 0.01
 
     layers = [10] * 5
     dropout_rate = 0.1

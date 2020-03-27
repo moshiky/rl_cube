@@ -1,4 +1,4 @@
-from typing import Tuple
+from typing import Tuple, List
 
 import numpy as np
 from abc import ABCMeta, abstractmethod
@@ -41,6 +41,13 @@ class SimulatorInterface(metaclass=ABCMeta):
     def get_actions(self) -> ActionType:
         """
         Returns action type configuration.
+        """
+        raise NotImplementedError()
+
+    @abstractmethod
+    def get_state_feature_specs(self) -> List[int]:
+        """
+        Returns the state feature specs.
         """
         raise NotImplementedError()
 

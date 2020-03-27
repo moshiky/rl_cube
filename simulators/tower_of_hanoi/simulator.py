@@ -1,4 +1,4 @@
-from typing import Tuple
+from typing import Tuple, List
 
 import numpy as np
 
@@ -47,6 +47,12 @@ class Simulator(SimulatorInterface):
                 5   # pole[2] -> pole[1]
             ]
         )
+
+    def get_state_feature_specs(self) -> List[int]:
+        """
+        Interface method implementation.
+        """
+        return [self.__num_floors + 1] * (self.__num_floors * Simulator.NUM_POLES) + [Simulator.NUM_POLES]
 
     def __log(self, msg):
         if self.__verbose:
