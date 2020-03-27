@@ -57,7 +57,7 @@ class DQN(AgentLogicInterface):
             layers=logics_config.dqn.layers,
             dropout_rate=logics_config.dqn.dropout_rate
         )
-        self.__target_net = None
+        self.__target_net = self._store_q_net_and_load()
 
         # define optimizer
         self.__optimizer = torch.optim.Adam(
@@ -79,10 +79,6 @@ class DQN(AgentLogicInterface):
         self.__memory.append((s_t0, a, r, s_t1))
         if len(self.__memory) > logics_config.dqn.memory_size:
             self.__memory = self.__memory[1:]
-
-        # update target network in intervals
-        if self.__step_idx % logics_config.dqn.target_update_interval == 0:
-            self.__target_net = self._store_q_net_and_load()
 
         # create train batch
         batch_size = logics_config.dqn.batch_size
@@ -115,6 +111,10 @@ class DQN(AgentLogicInterface):
 
             # increase step idx
             self.__step_idx += 1
+
+        # update target network in intervals
+        if self.__step_idx % logics_config.dqn.target_update_interval == 0:
+            self.__target_net = self._store_q_net_and_load()
 
     def next_action(self, s_t, is_train_mode):
         """
