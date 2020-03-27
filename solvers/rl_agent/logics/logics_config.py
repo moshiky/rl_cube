@@ -12,6 +12,6 @@ class dqn:
     dropout_rate = 0.1
 
     batch_size = 32
-    memory_size = 10000
+    memory_size = 500
 
     target_update_interval = 10

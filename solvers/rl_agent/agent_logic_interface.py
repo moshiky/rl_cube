@@ -1,6 +1,9 @@
 
 from abc import ABCMeta, abstractmethod
 
+from framework.action import Action
+from framework.state import State
+
 
 class AgentLogicInterface(metaclass=ABCMeta):
     """
@@ -16,7 +19,7 @@ class AgentLogicInterface(metaclass=ABCMeta):
         raise NotImplementedError()
 
     @abstractmethod
-    def update(self, s_t0, a, r, s_t1):
+    def update(self, s_t0: State, a: Action, r: float, s_t1: State) -> float:
         """
         Updates agent's logic using experience information.
 
@@ -24,7 +27,7 @@ class AgentLogicInterface(metaclass=ABCMeta):
         :param a: current action.
         :param r: current reward.
         :param s_t1: next state.
-        :return:
+        :return: integer- reward signal
         """
         raise NotImplementedError()
 

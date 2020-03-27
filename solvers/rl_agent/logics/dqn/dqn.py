@@ -5,6 +5,8 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 from config import consts
+from framework.action import Action
+from framework.state import State
 from solvers.rl_agent.agent_logic_interface import AgentLogicInterface
 from solvers.rl_agent.logics import logics_config
 from solvers.rl_agent.logics.dqn.q_net import QNet
@@ -71,21 +73,21 @@ class DQN(AgentLogicInterface):
         """
         pass
 
-    def update(self, s_t0, a, r, s_t1):
+    def update(self, s_t0: State, a: Action, r: float, s_t1: State) -> float:
         """
         Interface method implementation.
         """
         # store experience to memory
         self.__memory.append((s_t0, a, r, s_t1))
-        if len(self.__memory) > logics_config.dqn.memory_size:
-            self.__memory = self.__memory[1:]
+        if len(self.__memory) > logics_config.dqn.memory_size + 200:
+            self.__memory = self.__memory[200:]
 
         # create train batch
         batch_size = logics_config.dqn.batch_size
         if len(self.__memory) >= batch_size:
 
             # select samples for batch
-            batch_sample_idxs = np.random.randint(len(self.__memory))
+            batch_sample_idxs = np.random.randint(len(self.__memory), size=batch_size)
             batch_samples = np.array(self.__memory, dtype=object)[batch_sample_idxs]
 
             # extract batch elements
@@ -95,13 +97,13 @@ class DQN(AgentLogicInterface):
             s_t1_batch = [x[3] for x in batch_samples]
 
             # get q(s_t0, a) for the batch
-            s_t0_q_net_outputs = self.__q_net(s_t0_batch)
+            s_t0_q_net_outputs = self.__q_net(s_t0_batch).cpu()
             y_hat_values = s_t0_q_net_outputs[range(batch_size), a_batch]
 
             # get target values
-            s_t1_q_net_outputs = self.__target_net(s_t1_batch)
+            s_t1_q_net_outputs = self.__target_net(s_t1_batch).cpu()
             best_a_values = s_t1_q_net_outputs.max(dim=1)
-            y_values = torch.from_numpy(np.array(r_batch)) + logics_config.common.gamma * best_a_values
+            y_values = torch.from_numpy(np.array(r_batch)) + logics_config.common.gamma * best_a_values.values
 
             # calculate loss and perform back-propagation
             loss = F.mse_loss(y_hat_values, y_values)
@@ -116,7 +118,9 @@ class DQN(AgentLogicInterface):
         if self.__step_idx % logics_config.dqn.target_update_interval == 0:
             self.__target_net = self._store_q_net_and_load()
 
-    def next_action(self, s_t, is_train_mode):
+        return r
+
+    def next_action(self, s_t, is_train_mode) -> Action:
         """
         Interface method implementation.
         """
@@ -127,12 +131,12 @@ class DQN(AgentLogicInterface):
 
         else:
             # select best action value
-            s_t_q_net_output = self.__target_net([s_t])[0]
+            s_t_q_net_output = self.__target_net([s_t]).cpu()[0]
             best_q_value = s_t_q_net_output.max()
             best_a_idxs = np.where(s_t_q_net_output == best_q_value)[0].tolist()
             selected_value = np.random.choice(best_a_idxs)
 
-        return selected_value
+        return Action(selected_value, self.__action_type)
 
     def _store_q_net_and_load(self) -> nn.Module:
         """
@@ -141,10 +145,11 @@ class DQN(AgentLogicInterface):
         :return: nn.Module.
         """
         # store q net to disk
-        ckpt_file_path = os.path.join(self.__train_dir_path, 'model__step_{}.pt'.format(self.__step_idx))
+        ckpt_file_path = os.path.join(self.__train_dir_path, 'model__step_{}.pt'.format(str(self.__step_idx).zfill(5)))
         torch.save(self.__q_net, ckpt_file_path)
 
         # load saved model and return
         loaded_model = torch.load(ckpt_file_path)
         loaded_model.eval()
+        loaded_model.cuda()
         return loaded_model

@@ -9,7 +9,7 @@ from solvers.rl_agent.logics.dqn.dqn import DQN
 
 def main():
     # create environment
-    env = Simulator(num_floors=5, verbose=False)
+    env = Simulator(num_floors=3, verbose=False)
 
     # create agent logic
     # agent_logic = TabularQLearning(

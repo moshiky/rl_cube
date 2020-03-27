@@ -62,6 +62,7 @@ class QNet(nn.Module):
         # convert to sequential model and store
         self.__model = nn.Sequential(*nn_layers)
         self.__model.train()
+        self.__model.cuda()
 
     @staticmethod
     def _one_hot_encode(class_idx: int, num_classes: int):
@@ -118,4 +119,4 @@ class QNet(nn.Module):
         input_tensors_batch = torch.cat(input_tensors, dim=0)
 
         # feed model and return logits
-        return self.__model(input_tensors_batch)
+        return self.__model(input_tensors_batch.cuda())
