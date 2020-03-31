@@ -11,7 +11,7 @@ class dqn:
     layers = [10] * 5
     dropout_rate = 0.1
 
-    batch_size = 32
+    batch_size = 16
     memory_size = 500
 
-    target_update_interval = 10
+    target_update_interval = 100

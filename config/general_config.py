@@ -1,12 +1,12 @@
 
 class train_config:
     num_epochs = 10
-    max_epoch_steps = 40
+    max_epoch_steps = 10
 
 
 class eval_config:
     num_epochs = 20
-    max_epoch_steps = 40
+    max_epoch_steps = 10
 
 
 # ==================

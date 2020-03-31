@@ -1,4 +1,4 @@
-from config import general_config
+from config import general_config, consts
 from simulators.tower_of_hanoi.rs_logic import get_shaping_signal
 from simulators.tower_of_hanoi.similarity_logic import get_similarity_group
 from simulators.tower_of_hanoi.simulator import Simulator
@@ -20,10 +20,11 @@ def main():
     #     rs_logic=get_shaping_signal,
     #     similarity_logic=get_similarity_group
     # )
+    train_dir = r'c:/files/train_dir/dqn_01'
     agent_logic = DQN(
         state_feature_specs=env.get_state_feature_specs(),
         action_type=env.get_actions(),
-        train_dir_path=r'c:/files/train_dir/dqn_01'
+        train_dir_path=train_dir
     )
 
     # create agent
@@ -50,6 +51,8 @@ def main():
 
         if mean == 1:
             break
+
+    # consts.PROFILER.dump_stats(train_dir + r'/stats.txt')
 
 
 if __name__ == '__main__':
