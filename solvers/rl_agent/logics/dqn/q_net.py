@@ -10,7 +10,7 @@ class QNet(nn.Module):
     """
     Implements q net module.
     """
-    def __init__(self, state_feature_specs, num_actions, layers, dropout_rate):
+    def __init__(self, state_feature_specs, num_actions, layers, dropout_rate, use_gpu):
         """
         Initiate the module.
 
@@ -21,6 +21,7 @@ class QNet(nn.Module):
         :param num_actions: integer. number of actions.
         :param layers: layers configuration. list of integers.
         :param dropout_rate: float.
+        :param use_gpu: boolean. whether or not to use the gpu.
         """
         # call base c'tor
         super().__init__()
@@ -28,6 +29,7 @@ class QNet(nn.Module):
         # store configuration
         self.__state_feature_specs = state_feature_specs
         self.__input_shape = sum(self.__state_feature_specs)
+        self.__use_gpu = use_gpu
 
         self.__num_actions = num_actions
 
@@ -62,7 +64,9 @@ class QNet(nn.Module):
         # convert to sequential model and store
         self.__model = nn.Sequential(*nn_layers)
         self.__model.train()
-        self.__model.cuda()
+
+        if self.__use_gpu:
+            self.__model.cuda()
 
     @staticmethod
     def _one_hot_encode(class_idx: int, num_classes: int):
@@ -118,5 +122,8 @@ class QNet(nn.Module):
         ]
         input_tensors_batch = torch.cat(input_tensors, dim=0)
 
+        if self.__use_gpu:
+            input_tensors_batch = input_tensors_batch.cuda()
+
         # feed model and return logits
-        return self.__model(input_tensors_batch.cuda())
+        return self.__model(input_tensors_batch)

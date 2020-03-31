@@ -17,7 +17,8 @@ class DQN(AgentLogicInterface):
     Implements Deep Q-Learning algorithm.
     """
 
-    def __init__(self, state_feature_specs, action_type, train_dir_path, rs_logic=None, similarity_logic=None):
+    def __init__(self, state_feature_specs, action_type, train_dir_path, use_gpu,
+                 rs_logic=None, similarity_logic=None):
         """
         Initiate logic instance.
 
@@ -27,6 +28,7 @@ class DQN(AgentLogicInterface):
             otherwise- error!
         :param action_type: instances of ActionType.
         :param train_dir_path: string. path to dir to store the checkpoint files.
+        :param use_gpu: boolean. whether or not to use the gpu.
         :param rs_logic: reward shaping logic to apply.
             prototype: func(s_t, a_t, s_t1) -> float
         :param similarity_logic: similarity logic to apply.
@@ -43,6 +45,7 @@ class DQN(AgentLogicInterface):
         self.__state_feature_specs = state_feature_specs
         self.__action_type = action_type
         self.__train_dir_path = train_dir_path
+        self.__use_gpu = use_gpu
         self.__rs_logic = rs_logic
         self.__similarity_logic = similarity_logic
         self.__step_idx = 0
@@ -57,7 +60,8 @@ class DQN(AgentLogicInterface):
             state_feature_specs=self.__state_feature_specs,
             num_actions=len(self.__action_type.action_values),
             layers=logics_config.dqn.layers,
-            dropout_rate=logics_config.dqn.dropout_rate
+            dropout_rate=logics_config.dqn.dropout_rate,
+            use_gpu=self.__use_gpu
         )
         self.__target_net = self._store_q_net_and_load()
 
@@ -151,5 +155,8 @@ class DQN(AgentLogicInterface):
         # load saved model and return
         loaded_model = torch.load(ckpt_file_path)
         loaded_model.eval()
-        loaded_model.cuda()
+
+        if self.__use_gpu:
+            loaded_model.cuda()
+
         return loaded_model

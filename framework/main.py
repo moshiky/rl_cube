@@ -24,7 +24,8 @@ def main():
     agent_logic = DQN(
         state_feature_specs=env.get_state_feature_specs(),
         action_type=env.get_actions(),
-        train_dir_path=train_dir
+        train_dir_path=train_dir,
+        use_gpu=True
     )
 
     # create agent
