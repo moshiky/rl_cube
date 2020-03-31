@@ -37,8 +37,10 @@ class QNet(nn.Module):
         nn_layers = list()
 
         # construct nn hidden layers
+        print('Network structure:')
         next_input_size = sum(self.__state_feature_specs)
         for layer_size in layers:
+            print('>> layer: {} -> {}'.format(next_input_size, layer_size))
             next_layer = nn.Linear(
                 in_features=next_input_size,
                 out_features=layer_size,
@@ -47,19 +49,24 @@ class QNet(nn.Module):
             next_input_size = layer_size
             nn_layers.append(next_layer)
 
+            print('>> layer: batch-norm')
             nn_layers.append(nn.BatchNorm1d(next_input_size))
+
+            print('>> layer: relu')
             nn_layers.append(nn.ReLU())
+
             if dropout_rate > 0:
+                print('>> layer: dropout {}'.format(dropout_rate))
                 nn_layers.append(nn.Dropout(dropout_rate))
 
         # add final layer
+        print('>> layer: {} -> {}'.format(next_input_size, self.__num_actions))
         next_layer = nn.Linear(
             in_features=next_input_size,
             out_features=self.__num_actions,
             bias=True
         )
         nn_layers.append(next_layer)
-        nn_layers.append(nn.Softmax())
 
         # convert to sequential model and store
         self.__model = nn.Sequential(*nn_layers)
