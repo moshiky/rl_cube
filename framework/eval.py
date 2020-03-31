@@ -36,7 +36,7 @@ def visualize_epoch(env, policy_method, max_epoch_steps):
     print('Game over.')
 
 
-if __name__ == '__main__':
+def main():
     # create environment
     env = Simulator(num_floors=3, verbose=False)
 
@@ -48,3 +48,7 @@ if __name__ == '__main__':
     )
 
     visualize_epoch(env, policy_method, max_epoch_steps=20)
+
+
+if __name__ == '__main__':
+    main()
