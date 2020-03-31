@@ -1,4 +1,5 @@
 from config import general_config
+from simulators.tower_of_hanoi.rs_logics import accumulate_pole
 from simulators.tower_of_hanoi.simulator import Simulator
 from solvers.rl_agent.agent import Agent
 # from solvers.rl_agent.logics.tabular_q_learning.tabular_q_learning import TabularQLearning
@@ -23,7 +24,8 @@ def main():
         state_feature_specs=env.get_state_feature_specs(),
         action_type=env.get_actions(),
         train_dir_path=train_dir,
-        use_gpu=True
+        use_gpu=True,
+        rs_logic=accumulate_pole.get_shaping_signal
     )
 
     # create agent

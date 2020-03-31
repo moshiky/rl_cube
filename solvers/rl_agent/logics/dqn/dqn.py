@@ -90,6 +90,10 @@ class DQN(AgentLogicInterface):
         """
         Interface method implementation.
         """
+        # apply reward shaping logic
+        if self.__rs_logic is not None:
+            r += self.__rs_logic(s_t0, a, s_t1)
+
         # store experience to memory
         self.__memory.add_sample(s_t0, a, r, s_t1)
 
