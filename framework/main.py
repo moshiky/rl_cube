@@ -1,6 +1,4 @@
-from config import general_config, consts
-from simulators.tower_of_hanoi.rs_logic import get_shaping_signal
-from simulators.tower_of_hanoi.similarity_logic import get_similarity_group
+from config import general_config
 from simulators.tower_of_hanoi.simulator import Simulator
 from solvers.rl_agent.agent import Agent
 # from solvers.rl_agent.logics.tabular_q_learning.tabular_q_learning import TabularQLearning
