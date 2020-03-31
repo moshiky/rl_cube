@@ -1,4 +1,6 @@
 import os
+from typing import List
+
 import numpy as np
 import torch
 import torch.nn as nn
@@ -6,9 +8,11 @@ import torch.nn.functional as F
 
 from config import consts
 from framework.action import Action
+from framework.action_type import ActionType
 from framework.state import State
 from solvers.rl_agent.agent_logic_interface import AgentLogicInterface
 from solvers.rl_agent.logics import logics_config
+from solvers.rl_agent.logics.dqn import state_utils
 from solvers.rl_agent.logics.dqn.q_net import QNet
 from solvers.rl_agent.logics.dqn.replay_memory_handler import ReplayMemoryHandler
 
@@ -50,6 +54,7 @@ class DQN(AgentLogicInterface):
         self.__rs_logic = rs_logic
         self.__similarity_logic = similarity_logic
         self.__step_idx = 0
+        self.__epsilon = logics_config.common.epsilon
 
         if not os.path.exists(self.__train_dir_path):
             os.makedirs(self.__train_dir_path)
@@ -125,16 +130,16 @@ class DQN(AgentLogicInterface):
         Interface method implementation.
         """
         # check which mode it is and apply epsilon-greedy policy
-        if is_train_mode and np.random.rand() < logics_config.common.epsilon:
+        if is_train_mode and np.random.rand() < self.__epsilon:
             # select random action
             selected_value = np.random.choice(self.__action_type.action_values)
 
         else:
             # select best action value
-            s_t_q_net_output = self.__target_net(self.__memory.state_to_array(s_t).reshape([1, -1])).cpu()[0]
-            best_q_value = s_t_q_net_output.max()
-            best_a_idxs = np.where(s_t_q_net_output == best_q_value)[0].tolist()
-            selected_value = np.random.choice(best_a_idxs)
+            selected_value = self.get_best_action(self.__target_net, s_t, self.__state_feature_specs)
+
+        if is_train_mode:
+            self.__epsilon *= 0.999
 
         return Action(selected_value, self.__action_type)
 
@@ -149,10 +154,60 @@ class DQN(AgentLogicInterface):
         torch.save(self.__q_net, ckpt_file_path)
 
         # load saved model and return
-        loaded_model = torch.load(ckpt_file_path)
-        loaded_model.eval()
+        loaded_model = self._load_inference_model(ckpt_file_path)
 
         if self.__use_gpu:
             loaded_model.cuda()
 
         return loaded_model
+
+    @staticmethod
+    def get_best_action(model: nn.Module, state: State, state_feature_specs: List[int]) -> int:
+        """
+        Query model and return best action idx.
+
+        :param model: nn.Module. loaded module.
+        :param state: State.
+        :param state_feature_specs: list of ints.
+        :return:
+        """
+        s_t_q_net_output = model(
+            state_utils.state_to_array(state, state_feature_specs).reshape([1, -1])
+        ).cpu()[0]
+        best_q_value = s_t_q_net_output.max()
+        best_a_idxs = np.where(s_t_q_net_output == best_q_value)[0].tolist()
+        return np.random.choice(best_a_idxs)
+
+    @staticmethod
+    def _load_inference_model(ckpt_file_path: str) -> nn.Module:
+        """
+        Load model from given checkpoint path.
+        Returned model is in eval mode.
+
+        :param ckpt_file_path: string.
+        :return: nn.Module
+        """
+        return torch.load(ckpt_file_path).eval()
+
+    @staticmethod
+    def get_policy_func(model_file_path: str, state_feature_specs: List[int], action_type: ActionType):
+        """
+        Loads model from given path and returns a function of the form:
+            func(State) -> Action
+        :param model_file_path: string. model path.
+        :param state_feature_specs:
+        :param action_type:
+        :return:
+        """
+        # load model
+        inference_model = DQN._load_inference_model(model_file_path)
+
+        # construct policy method
+        def _pi(state: State) -> Action:
+            # get best action idx
+            selected_value = DQN.get_best_action(inference_model, state, state_feature_specs)
+
+            # wrap with Action and return
+            return Action(selected_value, action_type)
+
+        return _pi

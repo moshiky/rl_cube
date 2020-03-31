@@ -4,6 +4,7 @@ from typing import List, Tuple
 
 from framework.action import Action
 from framework.state import State
+from solvers.rl_agent.logics.dqn import state_utils
 
 
 class ReplayMemoryHandler:
@@ -47,8 +48,8 @@ class ReplayMemoryHandler:
             selected_idx = np.random.randint(self.__max_size)
 
         # convert states according to specified state feature specs
-        self.__states_t0[selected_idx, :] = self.state_to_array(s_t0)
-        self.__states_t1[selected_idx, :] = self.state_to_array(s_t1)
+        self.__states_t0[selected_idx, :] = state_utils.state_to_array(s_t0, self.__state_feature_specs)
+        self.__states_t1[selected_idx, :] = state_utils.state_to_array(s_t1, self.__state_feature_specs)
 
         # store reward and action
         self.__rewards[selected_idx] = r
@@ -83,47 +84,3 @@ class ReplayMemoryHandler:
         :return: boolean.
         """
         return self.__next_empty_idx >= batch_size
-
-    @staticmethod
-    def _one_hot_encode(class_idx: int, num_classes: int) -> np.array:
-        """
-        Converts class index to the one-hot representation.
-
-        :param class_idx: int
-        :param num_classes: int
-        :return: np.ndarray
-        """
-        vec = np.zeros(num_classes)
-        vec[class_idx] = 1
-        return vec
-
-    def state_to_array(self, state: State) -> np.array:
-        """
-        Converts a state to the representing np.array, according to self.__state_feature_specs configuration.
-
-        :param state: State instance.
-        :return: np.array.
-        """
-        # extract state features
-        state_features = state.features
-        if state_features.shape[0] == self.__total_num_features:
-            return state_features
-
-        # prepare output vector
-        feature_vector = np.zeros(self.__total_num_features, dtype=np.float32)
-
-        # fill feature_vector with feature values
-        current_idx = 0
-        for feature_idx in range(len(state_features)):
-            num_feature_inputs = self.__state_feature_specs[feature_idx]
-            feature_value = state_features[feature_idx]
-
-            if num_feature_inputs == 1:
-                feature_vector[current_idx] = feature_value
-            else:
-                feature_vector[current_idx:current_idx+num_feature_inputs] = \
-                    self._one_hot_encode(feature_value, num_feature_inputs)
-
-            current_idx += num_feature_inputs
-
-        return feature_vector

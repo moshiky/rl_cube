@@ -1,6 +1,6 @@
 
 class common:
-    epsilon = 0.05
+    epsilon = 0.5
     gamma = 0.99
 
 
@@ -11,7 +11,7 @@ class dqn:
     layers = [10] * 5
     dropout_rate = 0.1
 
-    batch_size = 16
-    memory_size = 500
+    batch_size = 512
+    memory_size = 100000
 
     target_update_interval = 100
