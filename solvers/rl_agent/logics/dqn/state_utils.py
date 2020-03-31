@@ -28,7 +28,7 @@ def state_to_array(state: State, state_feature_specs: List[int]) -> np.array:
     """
     # extract state features
     state_features = state.features
-    if state_features.shape[0] == len(state_feature_specs):
+    if state_features.shape[0] == sum(state_feature_specs):
         return state_features
 
     # prepare output vector
