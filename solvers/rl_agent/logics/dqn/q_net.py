@@ -68,62 +68,17 @@ class QNet(nn.Module):
         if self.__use_gpu:
             self.__model.cuda()
 
-    @staticmethod
-    def _one_hot_encode(class_idx: int, num_classes: int):
-        """
-        Converts class index to the one-hot representation.
-        :param class_idx: int
-        :param num_classes: int
-        :return: np.ndarray
-        """
-        vec = np.zeros(num_classes)
-        vec[class_idx] = 1
-        return vec
-
-    def _state_to_tensor(self, state: State) -> torch.Tensor:
-        """
-        Converts a state to the representing tensor, according to self.__state_feature_specs configuration.
-
-        :param state: State instance.
-        :return: torch.Tensor instance.
-        """
-        # extract state features
-        state_features = state.features
-
-        # prepare output vector
-        feature_vector = np.zeros(self.__input_shape, dtype=np.float32)
-
-        # fill feature_vector with feature values
-        current_idx = 0
-        for feature_idx in range(len(state_features)):
-            feature_inputs = self.__state_feature_specs[feature_idx]
-            feature_value = state_features[feature_idx]
-
-            if feature_inputs == 1:
-                feature_vector[current_idx] = feature_value
-            else:
-                feature_vector[current_idx:current_idx+feature_inputs] = \
-                    QNet._one_hot_encode(feature_value, feature_inputs)
-
-            current_idx += feature_inputs
-
-        return torch.from_numpy(feature_vector)
-
-    def forward(self, input_states: List[State]):
+    def forward(self, input_states: np.array):
         """
         Execute forward pass and return logits.
 
-        :param input_states: list of State elements.
+        :param input_states: np.array representation of state batch.
         :return: list of logits vectors.
         """
-        # convert each state to input tensor
-        input_tensors = [
-            self._state_to_tensor(state).unsqueeze(0) for state in input_states
-        ]
-        input_tensors_batch = torch.cat(input_tensors, dim=0)
+        input_states = torch.from_numpy(input_states)
 
         if self.__use_gpu:
-            input_tensors_batch = input_tensors_batch.cuda()
+            input_states = input_states.cuda()
 
         # feed model and return logits
-        return self.__model(input_tensors_batch)
+        return self.__model(input_states)

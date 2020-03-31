@@ -47,8 +47,8 @@ class ReplayMemoryHandler:
             selected_idx = np.random.randint(self.__max_size)
 
         # convert states according to specified state feature specs
-        self.__states_t0[selected_idx, :] = self._state_to_array(s_t0)
-        self.__states_t1[selected_idx, :] = self._state_to_array(s_t1)
+        self.__states_t0[selected_idx, :] = self.state_to_array(s_t0)
+        self.__states_t1[selected_idx, :] = self.state_to_array(s_t1)
 
         # store reward and action
         self.__rewards[selected_idx] = r
@@ -69,7 +69,20 @@ class ReplayMemoryHandler:
         batch_idxs = np.random.choice(range(self.__next_empty_idx), batch_size, replace=False)
 
         # return samples
-        return self.__states_t0[batch_idxs], self.__actions[batch_idxs], self.__rewards[batch_idxs], self.__states_t1
+        return \
+            self.__states_t0[batch_idxs], \
+            self.__actions[batch_idxs], \
+            self.__rewards[batch_idxs], \
+            self.__states_t1[batch_idxs]
+
+    def is_batch_ready(self, batch_size: int) -> bool:
+        """
+        Check whether or not there are enough samples for batch.
+
+        :param batch_size: integer.
+        :return: boolean.
+        """
+        return self.__next_empty_idx >= batch_size
 
     @staticmethod
     def _one_hot_encode(class_idx: int, num_classes: int) -> np.array:
@@ -84,7 +97,7 @@ class ReplayMemoryHandler:
         vec[class_idx] = 1
         return vec
 
-    def _state_to_array(self, state: State) -> np.array:
+    def state_to_array(self, state: State) -> np.array:
         """
         Converts a state to the representing np.array, according to self.__state_feature_specs configuration.
 

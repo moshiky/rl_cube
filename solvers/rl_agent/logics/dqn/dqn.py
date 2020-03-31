@@ -10,6 +10,7 @@ from framework.state import State
 from solvers.rl_agent.agent_logic_interface import AgentLogicInterface
 from solvers.rl_agent.logics import logics_config
 from solvers.rl_agent.logics.dqn.q_net import QNet
+from solvers.rl_agent.logics.dqn.replay_memory_handler import ReplayMemoryHandler
 
 
 class DQN(AgentLogicInterface):
@@ -54,7 +55,10 @@ class DQN(AgentLogicInterface):
             os.makedirs(self.__train_dir_path)
 
         # initiate q network members
-        self.__memory = list()
+        self.__memory = ReplayMemoryHandler(
+            max_size=logics_config.dqn.memory_size,
+            state_feature_specs=state_feature_specs
+        )
 
         self.__q_net = QNet(
             state_feature_specs=self.__state_feature_specs,
@@ -82,32 +86,24 @@ class DQN(AgentLogicInterface):
         Interface method implementation.
         """
         # store experience to memory
-        self.__memory.append((s_t0, a, r, s_t1))
-        if len(self.__memory) > logics_config.dqn.memory_size + 200:
-            self.__memory = self.__memory[200:]
+        self.__memory.add_sample(s_t0, a, r, s_t1)
 
         # create train batch
         batch_size = logics_config.dqn.batch_size
-        if len(self.__memory) >= batch_size:
-
-            # select samples for batch
-            batch_sample_idxs = np.random.randint(len(self.__memory), size=batch_size)
-            batch_samples = np.array(self.__memory, dtype=object)[batch_sample_idxs]
+        if self.__memory.is_batch_ready(batch_size):
 
             # extract batch elements
-            s_t0_batch = [x[0] for x in batch_samples]
-            a_batch = [int(x[1].action_value) for x in batch_samples]
-            r_batch = [x[2] for x in batch_samples]
-            s_t1_batch = [x[3] for x in batch_samples]
+            s_t0_batch, a_batch, r_batch, s_t1_batch = self.__memory.get_batch(batch_size)
 
             # get q(s_t0, a) for the batch
-            s_t0_q_net_outputs = self.__q_net(s_t0_batch).cpu()
+            s_t0_q_net_outputs = self.__q_net(s_t0_batch)
             y_hat_values = s_t0_q_net_outputs[range(batch_size), a_batch]
 
             # get target values
-            s_t1_q_net_outputs = self.__target_net(s_t1_batch).cpu()
-            best_a_values = s_t1_q_net_outputs.max(dim=1)
-            y_values = torch.from_numpy(np.array(r_batch)) + logics_config.common.gamma * best_a_values.values
+            s_t1_q_net_outputs = self.__target_net(s_t1_batch)
+            best_a_values = s_t1_q_net_outputs.max(dim=1).values
+            r_tensor = torch.from_numpy(r_batch).cuda() if self.__use_gpu else torch.from_numpy(r_batch)
+            y_values = r_tensor + logics_config.common.gamma * best_a_values
 
             # calculate loss and perform back-propagation
             loss = F.mse_loss(y_hat_values, y_values)
@@ -135,7 +131,7 @@ class DQN(AgentLogicInterface):
 
         else:
             # select best action value
-            s_t_q_net_output = self.__target_net([s_t]).cpu()[0]
+            s_t_q_net_output = self.__target_net(self.__memory.state_to_array(s_t).reshape([1, -1])).cpu()[0]
             best_q_value = s_t_q_net_output.max()
             best_a_idxs = np.where(s_t_q_net_output == best_q_value)[0].tolist()
             selected_value = np.random.choice(best_a_idxs)
