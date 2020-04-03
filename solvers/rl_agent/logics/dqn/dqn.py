@@ -9,6 +9,7 @@ import torch.nn.functional as F
 from config import consts
 from framework.action import Action
 from framework.action_type import ActionType
+from utils.plot_manager import PlotManager
 from framework.state import State
 from solvers.rl_agent.agent_logic_interface import AgentLogicInterface
 from solvers.rl_agent.logics import logics_config
@@ -55,6 +56,9 @@ class DQN(AgentLogicInterface):
         self.__similarity_logic = similarity_logic
         self.__step_idx = 0
         self.__epsilon = logics_config.common.epsilon
+
+        self._pm = PlotManager()
+        self._step_count = 0
 
         if not os.path.exists(self.__train_dir_path):
             os.makedirs(self.__train_dir_path)
@@ -107,6 +111,10 @@ class DQN(AgentLogicInterface):
             # get q(s_t0, a) for the batch
             s_t0_q_net_outputs = self.__q_net(s_t0_batch)
             y_hat_values = s_t0_q_net_outputs[range(batch_size), a_batch]
+
+            if self._step_count % 10 == 0:
+                self._pm.add_series_values('qs', [self._step_count], [s_t0_q_net_outputs.detach().cpu().numpy().mean()])
+            self._step_count += 1
 
             # get target values
             s_t1_q_net_outputs = self.__target_net(s_t1_batch)
