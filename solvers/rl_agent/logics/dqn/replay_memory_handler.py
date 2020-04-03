@@ -29,6 +29,7 @@ class ReplayMemoryHandler:
         self.__actions = np.zeros(self.__max_size, dtype=int)
         self.__rewards = np.zeros(self.__max_size, dtype=np.float32)
         self.__states_t1 = self.__states_t0.copy()
+        self.__states_t1_is_final = np.zeros(self.__max_size, dtype=int)
 
     def add_sample(self, s_t0: State, a: Action, r: float, s_t1: State) -> None:
         """
@@ -50,12 +51,13 @@ class ReplayMemoryHandler:
         # convert states according to specified state feature specs
         self.__states_t0[selected_idx, :] = state_utils.state_to_array(s_t0, self.__state_feature_specs)
         self.__states_t1[selected_idx, :] = state_utils.state_to_array(s_t1, self.__state_feature_specs)
+        self.__states_t1_is_final[selected_idx] = s_t1.is_final
 
         # store reward and action
         self.__rewards[selected_idx] = r
         self.__actions[selected_idx] = a.action_value
 
-    def get_batch(self, batch_size: int) -> Tuple[np.array, np.array, np.array, np.array]:
+    def get_batch(self, batch_size: int) -> Tuple[np.array, np.array, np.array, np.array, np.array]:
         """
         Create random batch of samples.
 
@@ -65,6 +67,7 @@ class ReplayMemoryHandler:
             action
             reward
             s_t1
+            s_t1_is_final
         """
         # select indexes
         batch_idxs = np.random.choice(range(self.__next_empty_idx), batch_size, replace=False)
@@ -74,7 +77,8 @@ class ReplayMemoryHandler:
             self.__states_t0[batch_idxs], \
             self.__actions[batch_idxs], \
             self.__rewards[batch_idxs], \
-            self.__states_t1[batch_idxs]
+            self.__states_t1[batch_idxs], \
+            self.__states_t1_is_final[batch_idxs]
 
     def is_batch_ready(self, batch_size: int) -> bool:
         """

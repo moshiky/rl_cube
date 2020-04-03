@@ -102,7 +102,7 @@ class DQN(AgentLogicInterface):
         if self.__memory.is_batch_ready(batch_size):
 
             # extract batch elements
-            s_t0_batch, a_batch, r_batch, s_t1_batch = self.__memory.get_batch(batch_size)
+            s_t0_batch, a_batch, r_batch, s_t1_batch, s_t1_is_final_batch = self.__memory.get_batch(batch_size)
 
             # get q(s_t0, a) for the batch
             s_t0_q_net_outputs = self.__q_net(s_t0_batch)
@@ -111,8 +111,14 @@ class DQN(AgentLogicInterface):
             # get target values
             s_t1_q_net_outputs = self.__target_net(s_t1_batch)
             best_a_values = s_t1_q_net_outputs.max(dim=1).values
-            r_tensor = torch.from_numpy(r_batch).cuda() if self.__use_gpu else torch.from_numpy(r_batch)
-            y_values = r_tensor + logics_config.common.gamma * best_a_values
+
+            r_tensor = torch.from_numpy(r_batch)
+            s_t1_is_final_tensor = torch.from_numpy(1 - s_t1_is_final_batch)
+            if self.__use_gpu:
+                r_tensor = r_tensor.cuda()
+                s_t1_is_final_tensor = s_t1_is_final_tensor.cuda()
+
+            y_values = r_tensor + logics_config.common.gamma * best_a_values * s_t1_is_final_tensor
 
             # calculate loss and perform back-propagation
             loss = F.mse_loss(y_hat_values, y_values)
